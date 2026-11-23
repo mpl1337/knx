@@ -80,7 +80,7 @@ void BauSystemBDevice::sendNextGroupTelegram()
                 handler(go);
 #endif
         }
-        if (!go.communicationEnable())
+        if (!go.communicationEnable() || (flag == WriteRequest && !go.transmitEnable()))
         {
             go.commFlag(Ok);
             continue;
@@ -96,7 +96,7 @@ void BauSystemBDevice::sendNextGroupTelegram()
         goSecurity.dataSecurity = DataSecurity::None;
 #endif
 
-        if (flag == WriteRequest && go.transmitEnable())
+        if (flag == WriteRequest)
         {
             uint8_t* data = go.valueRef();
             _appLayer.groupValueWriteRequest(AckRequested, asap, go.priority(), NetworkLayerParameter, goSecurity, data,
