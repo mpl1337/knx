@@ -96,18 +96,18 @@ void BauSystemBDevice::sendNextGroupTelegram()
         goSecurity.dataSecurity = DataSecurity::None;
 #endif
 
+        // The link may complete the request before dispatch returns.
+        go.commFlag(Transmitting);
         if (flag == WriteRequest && go.transmitEnable())
         {
-            uint8_t* data = go.valueRef();
-            _appLayer.groupValueWriteRequest(AckRequested, asap, go.priority(), NetworkLayerParameter, goSecurity, data,
-                go.sizeInTelegram());
+            // The source callback ran above. Deliver the local echo to its peers.
+            _appLayer.groupValueSend(GroupValueWrite, AckRequested, asap, go.priority(), NetworkLayerParameter,
+                                     goSecurity, go.valueRef(), go.sizeInTelegram(), asap);
         }
         else if (flag == ReadRequest)
         {
             _appLayer.groupValueReadRequest(AckRequested, asap, go.priority(), NetworkLayerParameter, goSecurity);
         }
-
-        go.commFlag(Transmitting);
 
         startIdx = asap + 1;
         return;

@@ -33,6 +33,12 @@ void ApplicationLayer::dataGroupIndication(HopCountType hopType, Priority priori
 
 void ApplicationLayer::dataGroupIndication(HopCountType hopType, Priority priority, uint16_t tsap, APDU& apdu, const SecurityControl& secCtrl)
 {
+    indicateGroupObjects(hopType, priority, tsap, apdu, secCtrl, 0);
+}
+
+void ApplicationLayer::indicateGroupObjects(HopCountType hopType, Priority priority, uint16_t tsap, APDU& apdu,
+                                           const SecurityControl& secCtrl, uint16_t skipAsap)
+{
     if (_assocTable == nullptr)
         return;
 
@@ -55,6 +61,8 @@ void ApplicationLayer::dataGroupIndication(HopCountType hopType, Priority priori
     int32_t asap = _assocTable->nextAsap(tsap, startIdx);
     for (; asap != -1; asap = _assocTable->nextAsap(tsap, startIdx))
     {
+        if (asap == skipAsap)
+            continue;
         switch (apdu.type())
         {
             case GroupValueRead:
@@ -385,7 +393,6 @@ void ApplicationLayer::groupValueReadResponse(AckType ack, uint16_t asap, Priori
 
 void ApplicationLayer::groupValueWriteRequest(AckType ack, uint16_t asap, Priority priority, HopCountType hopType, const SecurityControl& secCtrl, uint8_t * data, uint8_t dataLength)
 {
-    _savedAsapWriteRequest = asap;
     groupValueSend(GroupValueWrite, ack, asap, priority, hopType, secCtrl, data, dataLength);
 }
 
@@ -966,7 +973,7 @@ void ApplicationLayer::propertyExtDataSend(ApduType type, AckType ack, Priority 
 }
 
 void ApplicationLayer::groupValueSend(ApduType type, AckType ack, uint16_t asap, Priority priority, HopCountType hopType, const SecurityControl &secCtrl,
-    uint8_t* data,  uint8_t& dataLength)
+    uint8_t* data, uint8_t dataLength, uint16_t skipAsap)
 {
     if (_assocTable == nullptr)
         return;
@@ -987,8 +994,10 @@ void ApplicationLayer::groupValueSend(ApduType type, AckType ack, uint16_t asap,
     }
     // no need to check if there is a tsap. This is a response, so the read got through
     uint16_t tsap = (uint16_t)_assocTable->translateAsap(asap);
+    if (type == GroupValueWrite)
+        _savedAsapWriteRequest = asap;
     dataGroupRequest(ack, hopType, priority, tsap, apdu, secCtrl);
-    dataGroupIndication(hopType, priority, tsap, apdu, secCtrl);
+    indicateGroupObjects(hopType, priority, tsap, apdu, secCtrl, skipAsap);
 }
 
 void ApplicationLayer::memorySend(ApduType type, AckType ack, Priority priority, HopCountType hopType, uint16_t asap, const SecurityControl& secCtrl, uint8_t number,

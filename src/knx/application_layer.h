@@ -195,6 +195,9 @@ class ApplicationLayer
     static const SecurityControl noSecurity;
 
   private:
+    friend class BauSystemBDevice;
+    void indicateGroupObjects(HopCountType hopType, Priority priority, uint16_t tsap, APDU& apdu,
+                              const SecurityControl& secCtrl, uint16_t skipAsap);
     void propertyDataSend(ApduType type, AckType ack, Priority priority, HopCountType hopType, uint16_t asap, const SecurityControl &secCtrl,
                           uint8_t objectIndex, uint8_t propertyId, uint8_t numberOfElements, uint16_t startIndex, uint8_t* data,
                           uint8_t length);
@@ -210,7 +213,7 @@ class ApplicationLayer
     //
     void userMemorySend(ApduType type, AckType ack, Priority priority, HopCountType hopType, uint16_t asap, const SecurityControl& secCtrl,
                         uint8_t number, uint32_t memoryAddress, uint8_t* memoryData);
-    void groupValueSend(ApduType type, AckType ack, uint16_t asap, Priority priority, HopCountType hopType, const SecurityControl& secCtrl, uint8_t* data, uint8_t& dataLength);
+    void groupValueSend(ApduType type, AckType ack, uint16_t asap, Priority priority, HopCountType hopType, const SecurityControl& secCtrl, uint8_t* data, uint8_t dataLength, uint16_t skipAsap = 0);
     void individualIndication(HopCountType hopType, Priority priority, uint16_t tsap, APDU& apdu, const SecurityControl &secCtrl);
     void individualConfirm(AckType ack, HopCountType hopType, Priority priority, uint16_t tsap, APDU& apdu, const SecurityControl& secCtrl, bool status);
     void individualSend(AckType ack, HopCountType hopType, Priority priority, uint16_t asap, APDU& apdu, const SecurityControl& secCtrl);
